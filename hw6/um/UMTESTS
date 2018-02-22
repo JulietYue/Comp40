@@ -1,0 +1,11 @@
+cmov.um
+div.um
+halt.um
+halt-verbose.um
+input.um
+map_unmap.um
+mult.um
+nand.um
+print-six.um
+sload_sstore.um
+time.um

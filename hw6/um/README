@@ -1,0 +1,138 @@
+/*
+ * README for um
+ *
+ * Martin Gao & Juliet Yue
+ * mgao01, qyue01
+ * date: 11/27/17
+ *
+ */
+
+– Identifies what has been correctly implemented and what has not
+To my best knowledge, everything on the spec has been correctly implemented.
+However, the performance may not be ideal: midmark.um takes more than a second
+
+– Briefly enumerates any significant departures from your design
+There are no significant departures from our design
+
+– Succinctly describes the architecture of your system. 
+  Identify the modules used, what abstrac- tions they implement, 
+  what secrets they know, and how they relate to one another. 
+  Avoid narrative descriptions of the behavior of particular modules.
+
+Modules: 
+1) um: um.c um.h
+2) segments: segments.c segments.h
+3) bitpack library
+4) main to run the program
+
+* Main creates a um and keeps running instructions till halt.
+* Um reads in the file and stores program in segment 0 (with bitpack).
+  For each instruction, um identify the operation code (with bitpack),
+  and call the corresponding function in segments.
+  Each UM is represented by a struct that contains Sequence of mapped 
+  segments, Sequence of avaliable ids(been unmapped), and a program counter.
+* Segments malloc memory, do operations on each segment. 
+  Each segment is represented by a struct that contains the size 
+  and memory of the segment.
+
+
+– Explains how long it takes your UM to execute 50 million instructions, 
+  and how you know
+
+We write a testfile containing 500,002 instructions and use -O1 to compile
+(-O1 gives better result). 
+command: time mem-limited 500m cpu-limited 10 ./um time.um
+The result is 0.08 seconds.
+
+Given the number above, we believe that it may take 80s
+
+- UM tests
+
+cmov.um
+input: NULL
+expected output: YX
+aim: test cmov function
+how: load Y, X in r1, r2, 
+     load 0 in rc, try move r2 to r1, print out r1, should print Y
+     load 1 in rc, try move r2 to r1, print out r1, now should print X
+
+halt.um
+input: NULL
+expected output: NULL
+aim: test halt function
+how: program should exit nicely
+
+halt-verbose.um
+input: NULL
+expected output: NULL
+aim: test halt function
+how: add output functions after halt instruction,
+     these instructions should not be executed,
+     program should exit nicely with no output
+
+print-six.um
+input: NULL
+expected output: 6
+aim: test add function
+how: load 6 to r1, load 48 to r2
+     add r1 to r2, ouput the result, should print 6
+
+mult.um
+input: NULL
+expected output: 6
+aim: test multiply function
+how: load 6 to r1, load 8 to r2
+     multiply r1 to r2, ouput the result, should print 6
+
+div.um
+input: NULL
+expected output: d
+aim: test division function
+how: load 900 to r1, load 9 to r2
+     divide r1 by r2, ouput the result, should print d (90)
+
+nand.um
+input: NULL
+expected output: 4
+aim: test nand function
+how: load 0x1fffffb to r1, load  0x1ffffcf to r2
+     nand r1 by r2, put the result in r3, ouput the result, should print 4
+
+input.um
+input: 4
+expected output: 4
+aim: test input function
+how: get input from stream, and print it out, should be the same
+
+sload_sstore.um
+input: NULL
+expected output: bab
+aim: test sload and sstore function
+how: checks that values stored in memory are accurate and persistent
+
+time.um 
+input: NULL
+expected output: NULL
+aim: test the performance of um
+how: a file that contains 500,000 instructions, run with time command,
+     should finish within a second
+
+map_unmap.um
+input: NULL
+expected output: 11111111111111111111111111111111111111111111111111
+aim: test map and unmap function
+how: wrote a loop of 50 instrctions, each time print out the new mapped id
+     (add id with 48, should print out the correct id).
+
+The source code for writing the um tests is in the files umtests.c,
+with comments explaining how the tests work.
+
+- Hours spent analyzing the assignment
+5 hours
+
+- Hours spent preparing your design
+5
+
+- Hours spent on the program
+20
+
