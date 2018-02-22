@@ -1,0 +1,95 @@
+// Juliet Yue (qyue01), Steven Song (ssong03)
+// RPN Calc
+// urt0.ums
+// initialize program
+
+.section init
+.temps r6, r7
+.zero r0
+
+//start program
+start:
+        r0 := 0
+        r2 := endstack
+
+        //global variables used to track machine state and # of total values
+        m[r0][state] := waiting
+        m[r0][numvals] := r0
+
+        goto init_table linking r1
+
+        goto enter_main linking r1
+
+        halt
+
+//initialize jumptable with labels
+init_table:
+        push r1 on stack r2
+        push r4 on stack r2
+        push r3 on stack r2
+
+        r3 := jumptable
+        r4 := jumptable + 255
+        goto zero_table linking r1
+
+        r3 := jumptable + '0'
+        r3 := r3 - 1
+        r4 := jumptable + '9'
+        goto init_digits linking r1
+
+        m[r0][jumptable + ' '] := wait
+        m[r0][jumptable + '+'] := add
+        m[r0][jumptable + '-'] := sub
+        m[r0][jumptable + '*'] := mul
+        m[r0][jumptable + '/'] := div
+        m[r0][jumptable + '|'] := or
+        m[r0][jumptable + '&'] := and
+        m[r0][jumptable + 'c'] := neg
+        m[r0][jumptable + '~'] := not
+        m[r0][jumptable + 's'] := swap
+        m[r0][jumptable + 'd'] := dupe
+        m[r0][jumptable + 'p'] := rmv
+        m[r0][jumptable + 'z'] := clr
+        m[r0][jumptable + '\n'] := print
+
+        pop r3 off stack r2
+        pop r4 off stack r2
+        pop r1 off stack r2
+
+        goto r1
+
+//defaults all entries in jumptable to input_error
+zero_table:
+        r5 := zero_table
+        m[r0][r4] := input_error
+        r4 := r4 - 1
+        if (r4 != r3) goto r5
+        goto r1
+
+//initialize digit entires to digit label
+init_digits:
+        r5 := init_digits
+        m[r0][r4] := digits
+        r4 := r4 - 1
+        if (r4 != r3) goto r5
+        goto r1
+
+//allocate space for table and mark start of table
+.section tbl
+jumptable:
+.space 256
+
+//allocate space for value stack and mark end of stack
+.section stk
+.space 100000
+endstack:
+
+//allocate space for global state variable
+.section state
+state:
+.space 1
+
+//allocate space for global number of values variable
+.section numvals
+numvals:
+.space 1

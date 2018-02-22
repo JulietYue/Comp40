@@ -1,0 +1,421 @@
+# Steven Song ssong03
+# Juliet Yue qyue01
+# hw8 calc40.ums
+# command implementation
+
+.section text
+.temps r6, r7
+.zero r0
+
+//Booleans to keep track of input state
+entering:
+.data 1
+waiting:
+.data 0
+
+//////////////////////// Error Messages ////////////////////////
+stack_underflow:
+        output "Stack underflow---expected at least 2 elements\n"
+        goto r1
+
+stack_underflow_1:
+        output "Stack underflow---expected at least 1 element\n"
+        goto r1
+
+divide_by_zero:
+        pop r4 off stack r2
+        pop r3 off stack r2
+        output "Division by zero\n"
+        goto r1
+
+
+# Before we enter any of the function below, our stack contains all the 
+# values we stored before with the new input value (in ascii) at the top
+# of the value stack
+
+
+//Read in and process digits  
+input_error:
+        m[r0][state] := waiting
+        output "Unknown character \'"
+        output m[r0][r2]
+        output "\'\n"
+
+        pop stack r2
+        goto r1
+
+//Read in and process digits
+digits:
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r3 := new_digit
+        r4 := entering
+        if (m[r0][state] != r4) goto r3 using r5
+        goto append_digit
+
+//Read and store a new digit
+new_digit:
+        pop r4 off stack r2
+        pop r3 off stack r2
+
+        m[r0][state] := entering
+        r5 := 1 + m[r0][numvals]
+        m[r0][numvals] := r5
+        pop r5 off stack r2
+        r5 := r5 - '0'
+        push r5 on stack r2
+        goto r1
+
+//Read and append a digit
+append_digit:
+        r5 := m[r0][r2 + 2]
+        r5 := r5 - '0'
+
+        r3 := m[r0][r2 + 3]
+        r3 := r3 * 10
+        r5 := r3 + r5
+
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+        pop stack r2
+        push r5 on stack r2
+        goto r1
+
+//Change the state of calculator to waiting
+wait:
+        m[r0][state] := waiting
+        pop stack r2
+        goto r1
+
+//print numbers on the stack
+print:
+        m[r0][state] := waiting
+        pop stack r2
+        goto enter_print_all
+
+//Addition
+add:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        r3 := r4 + r3
+        m[r0][r5] := r3
+
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+//Subtraction
+sub:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        r3 := r4 - r3
+        m[r0][r5] := r3
+
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+//Multiplication
+mul:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        r3 := r4 * r3
+        m[r0][r5] := r3
+
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+////////////////////////////// Division //////////////////////////////
+
+//Differetiate different cases and goto process each case
+div:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r2 + 3
+        r4 := m[r0][r5]
+
+        if (r3 == r0) goto divide_by_zero using r5
+
+        if (r3 <s r0) goto check_top using r5
+
+        if (r4 <s r0) goto neg_pos using r5
+
+        goto pos_pos
+
+exit_div:
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+//Check the numerator
+check_top:
+
+        if (r4 <s r0) goto neg_neg using r5
+        goto pos_neg
+
+//positive / positive
+pos_pos:
+        r3 := r4 / r3
+
+        r5 := r2 + 3
+        m[r0][r5] := r3
+
+        goto exit_div
+
+//positive / negative
+pos_neg:
+        r3 := -r3
+
+        r3 := r4 / r3
+
+        r3 := -r3
+
+        r5 := r2 + 3
+        m[r0][r5] := r3
+
+        goto exit_div
+
+//negative / positive
+neg_pos:
+        r4 := -r4
+
+        r3 := r4 / r3
+
+        r3 := -r3
+
+        r5 := r2 + 3
+        m[r0][r5] := r3
+
+        goto exit_div
+
+// negative / negative
+neg_neg:
+        r3 := -r3
+
+        r4 := -r4
+        
+        goto pos_pos
+
+//Bitwise or
+or:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        r3 := r4 | r3
+        m[r0][r5] := r3
+
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+//Bitwise and
+and:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        r3 := r4 & r3
+        m[r0][r5] := r3
+
+        r4 := 1
+        m[r0][numvals] := m[r0][numvals] - r4 using r5
+        pop r4 off stack r2
+        pop r3 off stack r2
+        pop stack r2
+
+        goto r1
+
+//Two's complement
+neg:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 1
+        if (m[r0][numvals] <s r5) goto stack_underflow_1 using r5
+
+        r5 := m[r0][r2]
+        r5 := -r5
+        m[r0][r2] := r5
+
+        goto r1
+
+//Bitwise complement 
+not:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 1
+        if (m[r0][numvals] <s r5) goto stack_underflow_1 using r5
+
+        r5 := m[r0][r2]
+        r5 := ~r5
+        m[r0][r2] := r5
+
+        goto r1
+
+//Swap the top two values
+swap:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 2
+        if (m[r0][numvals] <s r5) goto stack_underflow using r5
+
+        push r3 on stack r2
+        push r4 on stack r2
+
+        r5 := r2 + 2
+        r3 := m[r0][r5]
+
+        r5 := r5 + 1
+        r4 := m[r0][r5]
+
+        m[r0][r5] := r3
+
+        r5 := r5 - 1
+        m[r0][r5] := r4
+
+        pop r4 off stack r2
+        pop r3 off stack r2
+
+        goto r1
+
+//Duplicate the value on the top of the value stack
+dupe:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 1
+        if (m[r0][numvals] <s r5) goto stack_underflow_1 using r5
+
+        r5 := m[r0][r2]
+
+        push r5 on stack r2
+
+        r5 := m[r0][numvals] + 1
+        m[r0][numvals] := r5
+
+        goto r1
+
+//Remove the value on the top of the value stack
+rmv:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r5 := 1
+        if (m[r0][numvals] <s r5) goto stack_underflow_1 using r5
+
+        pop stack r2
+
+        r5 := 1
+        r5 := m[r0][numvals] - r5
+        m[r0][numvals] := r5
+
+        goto r1
+
+//Clear all the values on stack and 
+//restore the number of elements on stack to 0
+
+clr:
+        m[r0][state] := waiting
+        pop stack r2
+
+        r2 := r2 + m[r0][numvals]
+        m[r0][numvals] := r0
+
+        goto r1

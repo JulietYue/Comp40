@@ -1,0 +1,32 @@
+Juliet Yue (qyue01), Steven Song (ssong03)
+
+We received help from the wonderful comp 40 staff
+
+To the best of our knowledge, we have successfully implemented a
+Reverse Polish Notation (RPN) Calculator in UM Assembly (UMASM).
+We implemented 4 modules:
+        urt0: initializes our program
+        main: executes our program
+      printd: prints the value stack
+      calc40: performs calculator operations
+
+We used Norman Ramsey's calling conventions where:
+        r0: is zero
+        r1: is the return address/(value)
+        r2: is the stack pointer
+        r3: non volatile register (must restore if used)
+        r4: non volatile register
+        r5: volatile register
+        r6: temporary register
+        r7: temporary register
+
+We implemented the print module by iteratively building a stack of 32 digits
+and then printing the digits by popping from the stack and only outputting
+digits after the last leading zero.
+
+We spent approximately 3 hours analyzing the problem.
+We spent approximately 10 hours writing assembly code.
+We spent approximately 2 hours debugging our calculator.
+
+Thank you Noah and all the TAs! COMP 40 was a fun experience
+and amazing course because of you guys! :D
